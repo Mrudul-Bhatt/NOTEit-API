@@ -234,4 +234,30 @@ router.put('/unfavourite', requireLogin, (req, res) => {
 		});
 });
 
+router.put('/notetags', requireLogin, (req, res) => {
+	Note.findById(req.body.noteId)
+		.then((result) => {
+			if (result.tag.includes(req.body.tag)) {
+				return res.status(422).json({ error: 'Tag already exists' });
+			}
+		})
+		.catch((err) => console.log(err));
+
+	Note.findByIdAndUpdate(
+		req.body.noteId,
+		{
+			$push: { tag: req.body.tag },
+		},
+		{ new: true }
+	)
+		.populate('postedBy', '_id name')
+		.then((data) => {
+			res.json({ data, message: 'Tag added' });
+		})
+		.catch((err) => {
+			console.log(err);
+			res.status(500).json({ error: 'Server error' });
+		});
+});
+
 module.exports = router;

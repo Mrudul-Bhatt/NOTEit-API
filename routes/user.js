@@ -99,7 +99,33 @@ router.put('/profileimg', requireLogin, (req, res) => {
 		});
 });
 
-router.post('/search', (req, res) => {
+router.put('/usertags', requireLogin, (req, res) => {
+	User.findById(req.body.userId)
+		.then((result) => {
+			if (result.tag.includes(req.body.tag)) {
+				return res.status(422).json({ error: 'Tag already exists' });
+			}
+		})
+		.catch((err) => console.log(err));
+
+	User.findByIdAndUpdate(
+		req.body.userId,
+		{
+			$push: { tag: req.body.tag },
+		},
+		{ new: true }
+	)
+		.select('-password')
+		.then((data) => {
+			res.json({ data, message: 'Success' });
+		})
+		.catch((err) => {
+			console.log(err);
+			res.status(500).json({ error: 'Server error' });
+		});
+});
+
+router.get('/searchtags', (req, res) => {
 	let userPattern = new RegExp('^' + req.body.query);
 	User.find({ email: { $regex: userPattern } })
 		.select('_id email')
