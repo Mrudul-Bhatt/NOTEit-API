@@ -57,12 +57,13 @@ router.get('/updatenote/:noteId', requireLogin, (req, res) => {
 });
 
 router.put('/updatenote', requireLogin, (req, res) => {
-	const { title, body } = req.body;
+	const { title, body, date } = req.body;
 	if (!title || !body) {
 		return res.status(422).json({ error: 'Please enter all fields' });
 	}
 	//var date = moment().format('MMMM Do YYYY');
-	var date = moment().format('lll').toString();
+	//var date = moment().format('lll').toString();
+	//var date = moment.utc().toString();
 
 	Note.findByIdAndUpdate(
 		req.body.noteId,
@@ -84,14 +85,16 @@ router.put('/updatenote', requireLogin, (req, res) => {
 });
 
 router.post('/createnote', requireLogin, (req, res) => {
-	const { title, body } = req.body;
+	const { title, body, date } = req.body;
 	if (!title || !body) {
 		return res.status(422).json({ error: 'Please enter all fields' });
 	}
 	//baring from storing password in req.user
 	req.user.password = undefined;
 	//var date = moment().format('MMMM Do YYYY');
-	var date = moment().format('lll').toString();
+	//var date = moment().format('lll').toString();
+	//var date = moment.utc().format().toString();
+
 	const newNote = new Note({
 		title,
 		body,
