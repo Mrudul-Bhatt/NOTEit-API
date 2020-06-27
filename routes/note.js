@@ -1,7 +1,7 @@
 const express = require('express');
 const Note = require('../models/note');
 const requireLogin = require('../middleware/requireLogin');
-
+const moment = require('moment');
 const router = express.Router();
 
 router.get('/allnotes', requireLogin, (req, res) => {
@@ -33,6 +33,7 @@ router.get('/allsubpost', requireLogin, (req, res) => {
 router.get('/mynotes', requireLogin, (req, res) => {
 	Note.find({ postedBy: req.user._id })
 		.populate('postedBy', '_id name')
+		.sort('-createdAt')
 		.then((mynote) => res.json({ mynote }))
 		.catch((error) => {
 			console.log(error);
@@ -154,12 +155,15 @@ router.put('/updatenote', requireLogin, (req, res) => {
 	if (!title || !body) {
 		return res.status(422).json({ error: 'Please enter all fields' });
 	}
+	//var date = moment().format('MMMM Do YYYY');
+	var date = moment().format('lll').toString();
 
 	Note.findByIdAndUpdate(
 		req.body.noteId,
 		{
 			title: req.body.title,
 			body: req.body.body,
+			dateUpdated: date,
 		},
 		{ new: true }
 	)
@@ -180,10 +184,12 @@ router.post('/createnote', requireLogin, (req, res) => {
 	}
 	//baring from storing password in req.user
 	req.user.password = undefined;
-
+	//var date = moment().format('MMMM Do YYYY');
+	var date = moment().format('lll').toString();
 	const newNote = new Note({
 		title,
 		body,
+		dateCreated: date,
 		postedBy: req.user,
 	});
 
@@ -257,6 +263,19 @@ router.put('/notetags', requireLogin, (req, res) => {
 		.catch((err) => {
 			console.log(err);
 			res.status(500).json({ error: 'Server error' });
+		});
+});
+
+router.post('/searchnotes', (req, res) => {
+	let notePattern = new RegExp('^' + req.body.query);
+	Note.find({ title: { $regex: notePattern } })
+		.populate('postedBy', '_id name')
+		.then((result) => {
+			res.json({ result });
+		})
+		.catch((err) => {
+			console.log(err);
+			res.status(500).json({ error: 'Server Error' });
 		});
 });
 
