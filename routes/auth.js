@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 
 //File Imports
 const User = require('../models/user');
-const { JWT_SECRET_KEY } = require('../config/keys');
+const { JWT_SECRET_KEY } = require('../config/dev');
 
 const router = express.Router();
 

@@ -4,32 +4,6 @@ const requireLogin = require('../middleware/requireLogin');
 const moment = require('moment');
 const router = express.Router();
 
-router.get('/allnotes', requireLogin, (req, res) => {
-	Post.find()
-		.populate('postedBy', '_id name imageUrl')
-		.populate('comments.postedBy', '_id name')
-		.then((posts) => {
-			res.json({ posts });
-		})
-		.catch((error) => {
-			console.log(error);
-			res.status(500).json({ error: 'Server is down, try again later' });
-		});
-});
-
-router.get('/allsubpost', requireLogin, (req, res) => {
-	Post.find({ postedBy: { $in: req.user.following } })
-		.populate('postedBy', '_id name imageUrl')
-		.populate('comments.postedBy', '_id name')
-		.then((posts) => {
-			res.json({ posts });
-		})
-		.catch((error) => {
-			console.log(error);
-			res.status(500).json({ error: 'Server is down, try again later' });
-		});
-});
-
 router.get('/mynotes', requireLogin, (req, res) => {
 	Note.find({ postedBy: req.user._id })
 		.populate('postedBy', '_id name')
@@ -38,74 +12,6 @@ router.get('/mynotes', requireLogin, (req, res) => {
 		.catch((error) => {
 			console.log(error);
 			res.status(500).json({ error: 'Server is down, try again later' });
-		});
-});
-
-router.put('/like', requireLogin, (req, res) => {
-	Post.findByIdAndUpdate(
-		req.body.postId,
-		{
-			$push: { likes: req.user._id },
-		},
-		{
-			new: true,
-		}
-	)
-		.populate('comments.postedBy', '_id name')
-		.populate('postedBy', '_id name imageUrl')
-		.exec((err, result) => {
-			if (err) {
-				return res.status(422).json({ error: err });
-			} else {
-				res.json(result);
-			}
-		});
-});
-
-router.put('/unlike', requireLogin, (req, res) => {
-	Post.findByIdAndUpdate(
-		req.body.postId,
-		{
-			$pull: { likes: req.user._id },
-		},
-		{
-			new: true,
-		}
-	)
-		.populate('comments.postedBy', '_id name')
-		.populate('postedBy', '_id name imageUrl')
-		.exec((err, result) => {
-			if (err) {
-				return res.status(422).json({ error: err });
-			} else {
-				res.json(result);
-			}
-		});
-});
-
-router.put('/comments', requireLogin, (req, res) => {
-	const comment = {
-		text: req.body.text,
-		postedBy: req.user._id,
-	};
-
-	Post.findByIdAndUpdate(
-		req.body.postId,
-		{
-			$push: { comments: comment },
-		},
-		{
-			new: true,
-		}
-	)
-		.populate('comments.postedBy', '_id name')
-		.populate('postedBy', '_id name imageUrl')
-		.exec((err, result) => {
-			if (err) {
-				return res.status(422).json({ error: err });
-			} else {
-				res.json(result);
-			}
 		});
 });
 
@@ -233,32 +139,6 @@ router.put('/unfavourite', requireLogin, (req, res) => {
 		.populate('postedBy', '_id name')
 		.then((data) => {
 			res.json({ data });
-		})
-		.catch((err) => {
-			console.log(err);
-			res.status(500).json({ error: 'Server error' });
-		});
-});
-
-router.put('/notetags', requireLogin, (req, res) => {
-	Note.findById(req.body.noteId)
-		.then((result) => {
-			if (result.tag.includes(req.body.tag)) {
-				return res.status(422).json({ error: 'Tag already exists' });
-			}
-		})
-		.catch((err) => console.log(err));
-
-	Note.findByIdAndUpdate(
-		req.body.noteId,
-		{
-			$push: { tag: req.body.tag },
-		},
-		{ new: true }
-	)
-		.populate('postedBy', '_id name')
-		.then((data) => {
-			res.json({ data, message: 'Tag added' });
 		})
 		.catch((err) => {
 			console.log(err);
