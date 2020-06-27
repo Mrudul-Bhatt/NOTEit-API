@@ -149,7 +149,7 @@ router.put('/unfavourite', requireLogin, (req, res) => {
 		});
 });
 
-router.post('/searchnotes', (req, res) => {
+router.post('/searchnotes', requireLogin, (req, res) => {
 	let notePattern = new RegExp('^' + req.body.query);
 	Note.find({ title: { $regex: notePattern } })
 		.populate('postedBy', '_id name')
